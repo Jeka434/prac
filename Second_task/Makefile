@@ -1,4 +1,4 @@
-# Makefile for the first task
+# Makefile for the second task
 TARGET = second_program
 SOURCES = Second_task.c Second_task_funcs.c
 LIB = Second_task_funcs.h
