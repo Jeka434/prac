@@ -1,6 +1,5 @@
 #include <fcntl.h>
 #include <unistd.h>
-#include <stdio.h>
 #include "Second_task_funcs.h"
 
 enum {
@@ -69,7 +68,8 @@ process_file(char const *file_name)
                 if (number < 0) {
                     /* TOO BIG NUMBER */
                 }
-            } else {
+            }
+            if (!(buf[i] >= '0' && buf[i] <= '9') || (file_end && i == act_size - 1)) {
                 if (number_flag) {
                     number_flag = 0;
                     summ_exists = 1;
@@ -88,9 +88,9 @@ process_file(char const *file_name)
                     summ_exists = 0;
                     summ = 0;
                 } else {
-                    lseek(read_fd, line_start + 1, SEEK_SET);
+                    lseek(read_fd, line_start, SEEK_SET);
                     opt_size_sum = 0;
-                    file_str_len = cur_pos - act_size + i - line_start - 1;
+                    file_str_len = cur_pos - act_size + i - line_start;
                     while ((opt_size = read(read_fd, opt_buf, BUF_SIZE)) > 0) {
                         opt_size_sum += opt_size;
                         if (opt_size_sum < file_str_len) {
@@ -107,10 +107,10 @@ process_file(char const *file_name)
                         /* READING ERROR */
                         goto error_end;
                     }
-                    lseek(read_fd, 0, cur_pos);
+                    lseek(read_fd, cur_pos, SEEK_SET);
                 }
-                line_start = lseek(read_fd, 0, SEEK_CUR) - act_size + i;
-                if (!(file_end && i == act_size - 1) && write(write_fd, "\n", 1) < 0) {
+                line_start = cur_pos - act_size + i + 1;
+                if (buf[i] == '\n' && write(write_fd, "\n", 1) < 0) {
                     /* WRITING FILE ERROR */
                     goto error_end;
                 }

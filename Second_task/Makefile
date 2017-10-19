@@ -1,5 +1,5 @@
 # Makefile for the first task
-TESTFILES = file1 file2 file3 file4 file5 file6
+TESTFILES = file1 file2 file3 file4 file5 file6 file7 file8 file9 file10
 TESTDIR = ./tests/
 INCDIR = ./includes/
 SRCDIR = ./src/
@@ -19,6 +19,9 @@ $(SOURCES): $(INCDIR)$(LIB)
 output:
 	mkdir output
 test: $(TARGET) output
+	./$(TARGET) 1>output/stdout 2>output/stderr
+	chmod -r tests/file8
+	chmod -w tests/file9
 	./$(TARGET) $(patsubst %, $(TESTDIR)%, $(TESTFILES)) 1>output/stdout 2>output/stderr
 lcov: test
 	lcov --capture --directory ./ --output-file tests.info --rc lcov_branch_coverage=1
@@ -26,11 +29,15 @@ lcov: test
 dlcov: test
 	lcov/bin/lcov --capture --directory ./ --output-file tests.info --rc lcov_branch_coverage=1
 	lcov/bin/genhtml tests.info --branch-coverage -o html
-valgrind: output
-	rm -f tests/file*
-	cp tests/copied/* tests/
+valgrind: $(TARGET) output
 	valgrind --leak-check=full --leak-resolution=med -v ./$(TARGET) $(patsubst %, $(TESTDIR)%, $(TESTFILES)) 1>output/valg_stdout 2>output/valg_stderr
-
+	tail output/valg_stderr
+stderr:
+	cat output/stderr
+stdout:
+	cat output/stdout
 clean:
-	rm -rf html *.gc?? tests.info $(TARGET) *.o output tests/file*
+	chmod +r tests/file8 || true
+	chmod +w tests/file9 || true
+	rm -rf html *.gc?? tests.info $(TARGET) *.o output tests/file* *.dSYM
 	cp tests/copied/* tests/
