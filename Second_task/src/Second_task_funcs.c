@@ -1,6 +1,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <stdio.h>
+#include "Second_task_funcs.h"
 
 enum {
     BUF_SIZE = 512,
@@ -94,6 +95,7 @@ process_file(char const *file_name)
                         opt_size_sum += opt_size;
                         if (opt_size_sum < file_str_len) {
                             if (write(write_fd, opt_buf, opt_size) < 0) {
+                                /* WRITING FILE ERROR */
                                 goto error_end;
                             }
                         } else {
