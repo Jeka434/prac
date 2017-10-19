@@ -1,5 +1,5 @@
 # Makefile for the first task
-TESTFILES = file1 file2 file3
+TESTFILES = file1 file2 file3 file4 file5 file6
 TESTDIR = ./tests/
 INCDIR = ./includes/
 SRCDIR = ./src/
@@ -16,16 +16,21 @@ $(TARGET): $(OBJECTS)
 .c.o:
 	$(CC) -c $(CFLAGS) $(SRCDIR)$<
 $(SOURCES): $(INCDIR)$(LIB)
-test: $(TARGET)
-	if [! -d output]
-	then
+output:
 	mkdir output
-	fi
+test: $(TARGET) output
 	./$(TARGET) $(patsubst %, $(TESTDIR)%, $(TESTFILES)) 1>output/stdout 2>output/stderr
-lcov:
+lcov: test
 	lcov --capture --directory ./ --output-file tests.info --rc lcov_branch_coverage=1
 	genhtml tests.info --branch-coverage -o html
-valgrind:
-	valgrind --leak-check=full --leak-resolution=med -v ./$(TARGET) $(patsubst %, $(TESTDIR)%, $(TESTFILES)) 1>output/valg_stdout
+dlcov: test
+	lcov/bin/lcov --capture --directory ./ --output-file tests.info --rc lcov_branch_coverage=1
+	lcov/bin/genhtml tests.info --branch-coverage -o html
+valgrind: output
+	rm -f tests/file*
+	cp tests/copied/* tests/
+	valgrind --leak-check=full --leak-resolution=med -v ./$(TARGET) $(patsubst %, $(TESTDIR)%, $(TESTFILES)) 1>output/valg_stdout 2>output/valg_stderr
+
 clean:
-	rm -rf html *.gc?? tests.info $(TARGET) *.o output
+	rm -rf html *.gc?? tests.info $(TARGET) *.o output tests/file*
+	cp tests/copied/* tests/
