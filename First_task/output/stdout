@@ -1,0 +1,88 @@
+START
+Start creating list by testfile './tests/file'
+
+--- list_start ---
+empty list
+--- list_end --- 
+
+--- list_start ---
+/asd/
+--- list_end --- 
+
+--- list_start ---
+/asd/b/
+--- list_end --- 
+
+--- list_start ---
+/asd/b/s/
+--- list_end --- 
+
+--- list_start ---
+/asd/b/csd/s/
+--- list_end --- 
+
+--- list_start ---
+/asd/b/csd/e/s/
+--- list_end --- 
+
+--- list_start ---
+/asd/b/csd/dwq/e/s/
+--- list_end --- 
+
+--- list_start ---
+/asd/asdg/b/csd/dwq/e/s/
+--- list_end --- 
+
+--- list_start ---
+/asd/asdg/b/csd/dwq/e/s/sx/
+--- list_end --- 
+Stop creating list by testfile './tests/file'
+Start creating list by testfile './tests/file2'
+
+--- list_start ---
+empty list
+--- list_end --- 
+
+--- list_start ---
+/fjnwei/
+--- list_end --- 
+
+--- list_start ---
+/fjnwei/gww/
+--- list_end --- 
+
+--- list_start ---
+/efwd/fjnwei/gww/
+--- list_end --- 
+
+--- list_start ---
+//efwd/fjnwei/gww/
+--- list_end --- 
+
+--- list_start ---
+//efwd/eg/fjnwei/gww/
+--- list_end --- 
+
+--- list_start ---
+//efwd/eg/fjnwei/gww/wf/
+--- list_end --- 
+
+--- list_start ---
+//efwd/eg/fjnwei/gww/qwdqfg/wf/
+--- list_end --- 
+
+--- list_start ---
+//efwd/eg/ewed/fjnwei/gww/qwdqfg/wf/
+--- list_end --- 
+
+--- list_start ---
+//dasewmfiwe/efwd/eg/ewed/fjnwei/gww/qwdqfg/wf/
+--- list_end --- 
+Stop creating list by testfile './tests/file2'
+Start creating list by testfile './tests/file3'
+
+--- list_start ---
+empty list
+--- list_end --- 
+Stop creating list by testfile './tests/file3'
+END

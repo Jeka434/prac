@@ -1,0 +1,152 @@
+Branch data     Line data    Source code
+       1                 :            : #include <fcntl.h>
+       2                 :            : #include <unistd.h>
+       3                 :            : #include <stdio.h>
+       4                 :            : #include <errno.h>
+       5                 :            : 
+       6                 :            : enum {
+       7                 :            :     BUF_SIZE = 512,
+       8                 :            :     MAX_NUMBER_SIZE = 32, /* SIZE OF BUFFER FOR STRING-NUMBERS */
+       9                 :            : };
+      10                 :            : 
+      11                 :            : int int_to_str(char *str, int num);
+      12                 :            : int process_file(char const *file_name);
+      13                 :            : 
+      14                 :            : int
+      15                 :            : main(int argc, char const *argv[])
+      16                 :            : {
+      17         [ -  + ]:          1 :     if(argc == 1) {
+      18                 :          0 :         fprintf(stderr, "Sorry, no file to process.\n");
+      19                 :          0 :     }
+      20         [ +  + ]:          6 :     for (int i = 1; i < argc; i++) {
+      21         [ +  + ]:          5 :         if (process_file(argv[i]) < 0) {
+      22                 :          2 :             fprintf(stderr, "Error in file %s : ", argv[i]);
+      23                 :          2 :             perror(NULL);
+      24                 :          2 :         }
+      25                 :          5 :     }
+      26                 :          1 :     return 0;
+      27                 :            : }
+      28                 :            : 
+      29                 :            : int
+      30                 :            : int_to_str(char *str, int num)
+      31                 :            : {
+      32                 :         11 :     int i = 0;
+      33         [ +  + ]:         11 :     if(!num) {
+      34                 :          3 :         str[0] = '0';
+      35                 :          3 :         str[1] = '\0';
+      36                 :          3 :         return 1;
+      37                 :            :     }
+      38         [ +  + ]:         25 :     while (num) {
+      39                 :         17 :         str[i++] = '0' + num % 10;
+      40                 :         17 :         num /= 10;
+      41                 :            :     }
+      42                 :            :     char tmp;
+      43         [ +  + ]:         14 :     for (int j = 0; j < i / 2; j++) {
+      44                 :          6 :         tmp = str[j];
+      45                 :          6 :         str[j] = str[i - j - 1];
+      46                 :          6 :         str[i - j - 1] = tmp;
+      47                 :          6 :     }
+      48                 :          8 :     str[i] = '\0';
+      49                 :          8 :     return i;
+      50                 :         11 : }
+      51                 :            : 
+      52                 :            : int
+      53                 :            : process_file(char const *file_name)
+      54                 :            : {
+      55                 :          5 :     int read_fd = open(file_name, O_RDONLY);
+      56         [ +  + ]:          5 :     if (read_fd == -1) {
+      57                 :            :         /* OPEN RD FILE ERROR */
+      58                 :          2 :         return -1;
+      59                 :            :     }
+      60                 :          3 :     int write_fd = open(file_name, O_WRONLY);
+      61         [ -  + ]:          3 :     if (write_fd == -1) {
+      62                 :            :         /* OPEN WR FILE ERROR */
+      63                 :          0 :         close(read_fd);
+      64                 :          0 :         return -1;
+      65                 :            :     }
+      66                 :          3 :     lseek(write_fd, 0, SEEK_SET);
+      67                 :            :     char buf[BUF_SIZE];
+      68                 :            :     char opt_buf[BUF_SIZE];
+      69                 :          3 :     char str_number[MAX_NUMBER_SIZE] = {0};
+      70                 :            :     int act_size, i, opt_size;
+      71                 :          3 :     int number = 0, summ = 0, numlen;
+      72                 :          3 :     int number_flag = 0, summ_exists = 0, file_end = 0;
+      73                 :          3 :     off_t line_start = 0, cur_pos = 0, file_str_len, opt_size_sum;
+      74         [ +  + ]:          5 :     while ((act_size = read(read_fd, buf, BUF_SIZE)) > 0) {
+      75                 :          2 :         cur_pos = lseek(read_fd, 0, SEEK_CUR);
+      76         [ +  - ]:          2 :         if (cur_pos == lseek(read_fd, 0, SEEK_END)) {
+      77                 :          2 :             file_end = 1;
+      78                 :          2 :         }
+      79                 :          2 :         lseek(read_fd, cur_pos, SEEK_SET);
+      80         [ +  + ]:        106 :         for (i = 0; i < act_size; i++) {
+      81 [ +  + ][ +  + ]:        104 :             if (buf[i] >= '0' && buf[i] <= '9') {
+      82                 :         27 :                 number_flag = 1;
+      83                 :         27 :                 number = number * 10 + buf[i] - '0';
+      84                 :         27 :             } else {
+      85         [ +  + ]:         77 :                 if (number_flag) {
+      86                 :         16 :                     number_flag = 0;
+      87                 :         16 :                     summ_exists = 1;
+      88                 :         16 :                     summ += number;
+      89                 :         16 :                     number = 0;
+      90                 :         16 :                 }
+      91                 :            :             }
+      92 [ +  + ][ +  - ]:        104 :             if (buf[i] == '\n' || (file_end && i == act_size - 1)) {
+                 [ +  + ]
+      93         [ +  + ]:         13 :                 if (summ_exists) {
+      94                 :         11 :                     numlen = int_to_str(str_number, summ);
+      95         [ -  + ]:         11 :                     if (write(write_fd, str_number, numlen) < 0) {
+      96                 :            :                         /* WRITING FILE ERROR */
+      97                 :          0 :                         goto error_end;
+      98                 :            :                     }
+      99                 :         11 :                     summ_exists = 0;
+     100                 :         11 :                     summ = 0;
+     101                 :         11 :                 } else {
+     102                 :          2 :                     lseek(read_fd, line_start + 1, SEEK_SET);
+     103                 :          2 :                     opt_size_sum = 0;
+     104                 :          2 :                     file_str_len = cur_pos - act_size + i - line_start - 1;
+     105         [ +  - ]:          2 :                     while ((opt_size = read(read_fd, opt_buf, BUF_SIZE)) > 0) {
+     106                 :          2 :                         opt_size_sum += opt_size;
+     107         [ -  + ]:          2 :                         if (opt_size_sum < file_str_len) {
+     108         [ #  # ]:          0 :                             if (write(write_fd, opt_buf, opt_size) < 0) {
+     109                 :          0 :                                 goto error_end;
+     110                 :            :                             }
+     111                 :          0 :                         } else {
+     112                 :          2 :                             write(write_fd, opt_buf, file_str_len - opt_size_sum + opt_size);
+     113                 :          2 :                             break;
+     114                 :            :                         }
+     115                 :            :                     }
+     116         [ -  + ]:          2 :                     if (opt_size < 0) {
+     117                 :            :                         /* READING ERROR */
+     118                 :          0 :                         goto error_end;
+     119                 :            :                     }
+     120                 :          2 :                     lseek(read_fd, 0, cur_pos);
+     121                 :            :                 }
+     122                 :         13 :                 line_start = lseek(read_fd, 0, SEEK_CUR) - act_size + i;
+     123 [ +  - ][ +  + ]:         13 :                 if (!(file_end && i == act_size - 1) && write(write_fd, "\n", 1) < 0) {
+                 [ -  + ]
+     124                 :            :                     /* WRITING FILE ERROR */
+     125                 :          0 :                     goto error_end;
+     126                 :            :                 }
+     127                 :         13 :             }
+     128                 :        104 :         }
+     129                 :            :     }
+     130         [ -  + ]:          3 :     if (act_size < 0) {
+     131                 :            :         /* READING FILE ERROR */
+     132                 :          0 :         goto error_end;
+     133                 :            :     }
+     134                 :          3 :     off_t file_size = lseek(write_fd, 0, SEEK_CUR);
+     135         [ -  + ]:          3 :     if(truncate(file_name, file_size) < 0) {
+     136                 :            :         /* TRUNCATE FILE ERROR */
+     137                 :          0 :         goto error_end;
+     138                 :            :     }
+     139                 :          3 :     close(read_fd);
+     140                 :          3 :     close(write_fd);
+     141                 :          3 :     return 0;
+     142                 :            : error_end:
+     143                 :          0 :     close(read_fd);
+     144                 :          0 :     close(write_fd);
+     145                 :          0 :     return -1;
+     146                 :          5 : }
+
+0
+1

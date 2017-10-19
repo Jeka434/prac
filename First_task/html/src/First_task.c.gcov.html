@@ -1,0 +1,152 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - tests.info - src/First_task.c</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">src</a> - First_task.c<span style="font-size: 80%;"> (source / <a href="First_task.c.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">tests.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">28</td>
+            <td class="headerCovTableEntry">28</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2017-10-19 09:49:43</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">2</td>
+            <td class="headerCovTableEntry">2</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class="headerItem">Branches:</td>
+            <td class="headerCovTableEntry">16</td>
+            <td class="headerCovTableEntry">16</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">           Branch data     Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>                :            : #include &lt;string.h&gt;</a>
+<span class="lineNum">       2 </span>                :            : #include &lt;stdlib.h&gt;
+<span class="lineNum">       3 </span>                :            : #include &quot;First_task.h&quot;
+<a name="4"><span class="lineNum">       4 </span>                :            : </a>
+<span class="lineNum">       5 </span>                :            : List * /* LIST ELEMENT INITIALIZATION */
+<span class="lineNum">       6 </span>                :            : init_elem(const char *added_line, List *prev, List *next)
+<span class="lineNum">       7 </span>                :            : {
+<span class="lineNum">       8 </span>                :<span class="lineCov">         17 :     List *elem = calloc(1, sizeof(*elem));</span>
+<span class="lineNum">       9 </span>                :            : //LCOV_EXCL_START
+<span class="lineNum">      10 </span>                :            :     if (elem == NULL) {
+<span class="lineNum">      11 </span>                :            :         /* MEMORY ERROR */
+<span class="lineNum">      12 </span>                :            :         return NULL;
+<span class="lineNum">      13 </span>                :            :     }
+<span class="lineNum">      14 </span>                :            : //LCOV_EXCL_STOP
+<span class="lineNum">      15 </span>                :<span class="lineCov">         17 :     int line_size = strlen(added_line) + 1;</span>
+<span class="lineNum">      16 </span>                :<span class="lineCov">         17 :     elem-&gt;str = calloc(1, line_size * sizeof(*elem-&gt;str));</span>
+<span class="lineNum">      17 </span>                :            : //LCOV_EXCL_START
+<span class="lineNum">      18 </span>                :            :     if (elem-&gt;str == NULL) {
+<span class="lineNum">      19 </span>                :            :         /* MEMORY ERROR */
+<span class="lineNum">      20 </span>                :            :         free(elem);
+<span class="lineNum">      21 </span>                :            :         return NULL;
+<span class="lineNum">      22 </span>                :            :     }
+<span class="lineNum">      23 </span>                :            : //LCOV_EXCL_STOP
+<span class="lineNum">      24 </span>                :<span class="lineCov">         17 :     memcpy(elem-&gt;str, added_line, line_size);</span>
+<span class="lineNum">      25 </span>        [<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchCov" title="Branch 1 was taken 15 times"> + </span>]:<span class="lineCov">         17 :     if(prev == NULL) {</span>
+<span class="lineNum">      26 </span>                :<span class="lineCov">          2 :         elem-&gt;prev = elem;</span>
+<span class="lineNum">      27 </span>                :<span class="lineCov">          2 :         elem-&gt;next = elem;</span>
+<span class="lineNum">      28 </span>                :<span class="lineCov">          2 :     } else {</span>
+<span class="lineNum">      29 </span>                :<span class="lineCov">         15 :         elem-&gt;prev = prev;</span>
+<span class="lineNum">      30 </span>                :<span class="lineCov">         15 :         elem-&gt;next = next;</span>
+<span class="lineNum">      31 </span>                :            :     }
+<span class="lineNum">      32 </span>                :<span class="lineCov">         17 :     return elem;</span>
+<span class="lineNum">      33 </span>                :<span class="lineCov">         17 : }</span>
+<a name="34"><span class="lineNum">      34 </span>                :            : </a>
+<span class="lineNum">      35 </span>                :            : List * /* ADD ELEMENT TO LIST */
+<span class="lineNum">      36 </span>                :            : add_to_list(List *head_of_list, const char *added_line)
+<span class="lineNum">      37 </span>                :            : {
+<span class="lineNum">      38 </span>        [<span class="branchCov" title="Branch 0 was taken 3 times"> + </span><span class="branchCov" title="Branch 1 was taken 17 times"> + </span>]:<span class="lineCov">         20 :     if (added_line == NULL) {</span>
+<span class="lineNum">      39 </span>                :            :         /* NO STRING TO ADD */
+<span class="lineNum">      40 </span>                :<span class="lineCov">          3 :         return head_of_list;</span>
+<span class="lineNum">      41 </span>                :            :     }
+<span class="lineNum">      42 </span>        [<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchCov" title="Branch 1 was taken 15 times"> + </span>]:<span class="lineCov">         17 :     if (head_of_list == NULL) {</span>
+<span class="lineNum">      43 </span>                :<span class="lineCov">          2 :         head_of_list = init_elem(added_line, NULL, NULL);</span>
+<span class="lineNum">      44 </span>                :<span class="lineCov">          2 :         return head_of_list;</span>
+<span class="lineNum">      45 </span>                :            :     }
+<span class="lineNum">      46 </span>                :            :     List *list_pointer = head_of_list;
+<span class="lineNum">      47 </span>[<span class="branchCov" title="Branch 0 was taken 38 times"> + </span><span class="branchCov" title="Branch 1 was taken 8 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 31 times"> + </span><span class="branchCov" title="Branch 3 was taken 7 times"> + </span>]:<span class="lineCov">         46 :     while (list_pointer-&gt;next != head_of_list &amp;&amp; strcmp(list_pointer-&gt;str, added_line) &lt; 0) {</span>
+<span class="lineNum">      48 </span>                :<span class="lineCov">         31 :         list_pointer = list_pointer-&gt;next;</span>
+<span class="lineNum">      49 </span>                :            :     }
+<span class="lineNum">      50 </span>                :            :     List *new_elem = NULL;
+<span class="lineNum">      51 </span>[<span class="branchCov" title="Branch 0 was taken 13 times"> + </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 5 times"> + </span><span class="branchCov" title="Branch 3 was taken 8 times"> + </span>]:<span class="lineCov">         15 :     if (strcmp(head_of_list-&gt;str, added_line) &gt; 0 || strcmp(list_pointer-&gt;str, added_line) &lt; 0) {</span>
+<span class="lineNum">      52 </span>                :            :         list_pointer = head_of_list;
+<span class="lineNum">      53 </span>                :<span class="lineCov">          7 :     }</span>
+<span class="lineNum">      54 </span>                :<span class="lineCov">         15 :     new_elem = init_elem(added_line, list_pointer-&gt;prev, list_pointer);</span>
+<span class="lineNum">      55 </span>                :            : //LCOV_EXCL_START
+<span class="lineNum">      56 </span>                :            :     if (new_elem == NULL) {
+<span class="lineNum">      57 </span>                :            :         /* MEMORY ERROR */
+<span class="lineNum">      58 </span>                :            :         return NULL;
+<span class="lineNum">      59 </span>                :            :     }
+<span class="lineNum">      60 </span>                :            : //LCOV_EXCL_STOP
+<span class="lineNum">      61 </span>                :<span class="lineCov">         15 :     list_pointer-&gt;prev-&gt;next = new_elem;</span>
+<span class="lineNum">      62 </span>                :<span class="lineCov">         15 :     list_pointer-&gt;prev = new_elem;</span>
+<span class="lineNum">      63 </span>        [<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchCov" title="Branch 1 was taken 13 times"> + </span>]:<span class="lineCov">         15 :     if (strcmp(head_of_list-&gt;str, added_line) &gt; 0) {</span>
+<span class="lineNum">      64 </span>                :            :         head_of_list = new_elem;
+<span class="lineNum">      65 </span>                :<span class="lineCov">          2 :     }</span>
+<span class="lineNum">      66 </span>                :<span class="lineCov">         15 :     return head_of_list;</span>
+<span class="lineNum">      67 </span>                :<span class="lineCov">         20 : }</span>
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>
