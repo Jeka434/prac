@@ -3,8 +3,7 @@
 #include <string.h>
 #include "Second_task_funcs.h"
 
-int
-main(int argc, char const *argv[])
+int main(int argc, char const *argv[])
 {
     if(argc == 1) {
         fprintf(stderr, "Sorry, no file to process.\n");

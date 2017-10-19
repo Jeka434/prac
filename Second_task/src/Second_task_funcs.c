@@ -7,8 +7,8 @@ enum {
     MAX_NUMBER_SIZE = 32, /* SIZE OF BUFFER FOR STRING-NUMBERS */
 };
 
-int
-int_to_str(char *str, int num)
+/* GET STRING FROM INTEGER */
+int int_to_str(char *str, int num)
 {
     int i = 0;
     if(!num) {
@@ -30,8 +30,8 @@ int_to_str(char *str, int num)
     return i;
 }
 
-int
-process_file(char const *file_name)
+/* PROCESSING ONE FILE */
+int process_file(char const *file_name)
 {
     int read_fd = open(file_name, O_RDONLY);
     if (read_fd == -1) {
