@@ -69,7 +69,7 @@ int process_file(char const *file_name)
                     /* TOO BIG NUMBER */
                 }
             }
-            if (!(buf[i] >= '0' && buf[i] <= '9') || (file_end && i == act_size - 1)) {
+            if (buf[i] != '-' && (!(buf[i] >= '0' && buf[i] <= '9') || (file_end && i == act_size - 1))) {
                 if (number_flag) {
                     number_flag = 0;
                     summ_exists = 1;
