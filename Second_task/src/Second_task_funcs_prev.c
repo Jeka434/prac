@@ -1,15 +1,6 @@
 #include <fcntl.h>
 #include <unistd.h>
-#include <stdio.h>
 #include "Second_task_funcs.h"
-
-#if defined(__APPLE__) || defined(unix) || defined(__unix) || defined(__unix__)
-#define trun(file, size) ftruncate(file, size)
-#elif (defined _WIN32) || (defined _WIN64)
-#define trun(file, size) _ftruncate(file, size)
-#else
-#error Wrong system
-#endif
 
 enum {
     BUF_SIZE = 512,
@@ -48,36 +39,31 @@ int int_to_str(char *str, int num)
 /* PROCESSING ONE FILE */
 int process_file(char const *file_name)
 {
-    FILE *read_fd = fopen(file_name, "rb");
-    if (!read_fd) {
+    int read_fd = open(file_name, O_RDONLY);
+    if (read_fd == -1) {
         /* OPEN RD FILE ERROR */
         return -1;
     }
-    FILE *write_fd = fopen(file_name, "r+b");
-    if (!write_fd) {
+    int write_fd = open(file_name, O_WRONLY);
+    if (write_fd == -1) {
         /* OPEN WR FILE ERROR */
-        fclose(read_fd);
+        close(read_fd);
         return -1;
     }
-    fseek(write_fd, 0, SEEK_SET);
+    lseek(write_fd, 0, SEEK_SET);
     char buf[BUF_SIZE];
     char opt_buf[BUF_SIZE];
     char str_number[MAX_NUMBER_SIZE] = {0};
-    size_t act_size, i, opt_size;
+    int act_size, i, opt_size;
     long long number = 0, summ = 0, numlen;
     int number_flag = 0, summ_exists = 0, file_end = 0, negative_flag = 1;
-    long line_start = 0, cur_pos = 0, file_str_len, opt_size_sum;
-    while ((act_size = fread(buf, sizeof(*buf), sizeof(buf) / sizeof(*buf), read_fd))) {
-        if (ferror(read_fd)) {
-            /* READING FILE ERROR */
-            goto error_end;
-        }
-        cur_pos = ftell(read_fd);
-        fseek(read_fd, 0, SEEK_END);
-        if (cur_pos == ftell(read_fd)) {
+    off_t line_start = 0, cur_pos = 0, file_str_len, opt_size_sum;
+    while ((act_size = read(read_fd, buf, BUF_SIZE)) > 0) {
+        cur_pos = lseek(read_fd, 0, SEEK_CUR);
+        if (cur_pos == lseek(read_fd, 0, SEEK_END)) {
             file_end = 1;
         }
-        fseek(read_fd, cur_pos, SEEK_SET);
+        lseek(read_fd, cur_pos, SEEK_SET);
         for (i = 0; i < act_size; i++) {
             if (buf[i] >= '0' && buf[i] <= '9') {
                 number_flag = 1;
@@ -103,54 +89,56 @@ int process_file(char const *file_name)
             if (buf[i] == '\n' || (file_end && i == act_size - 1)) {
                 if (summ_exists) {
                     numlen = int_to_str(str_number, summ);
-                    if (fwrite(str_number, sizeof(*str_number), numlen * sizeof(*str_number),
-                        write_fd) != numlen * sizeof(*str_number)) {
+                    if (write(write_fd, str_number, numlen) < 0) {
                         /* WRITING FILE ERROR */
                         goto error_end;
                     }
                     summ_exists = 0;
                     summ = 0;
                 } else {
-                    fseek(read_fd, line_start, SEEK_SET);
+                    lseek(read_fd, line_start, SEEK_SET);
                     opt_size_sum = 0;
                     file_str_len = cur_pos - act_size + i - line_start + (buf[i] != '\n');
-                    while ((opt_size = fread(opt_buf,
-                        sizeof(*opt_buf), sizeof(opt_buf) / sizeof(*opt_buf), read_fd))) {
-                        if (ferror(read_fd)) {
-                            /* READING ERROR */
-                            goto error_end;
-                        }
+                    while ((opt_size = read(read_fd, opt_buf, BUF_SIZE)) > 0) {
                         opt_size_sum += opt_size;
                         if (opt_size_sum < file_str_len) {
-                            if (fwrite(opt_buf, sizeof(*opt_buf), opt_size, write_fd) != opt_size) {
+                            if (write(write_fd, opt_buf, opt_size) < 0) {
                                 /* WRITING FILE ERROR */
                                 goto error_end;
                             }
                         } else {
-                            fwrite(opt_buf, sizeof(*opt_buf),
-                                file_str_len - opt_size_sum + opt_size, write_fd);
+                            write(write_fd, opt_buf, file_str_len - opt_size_sum + opt_size);
                             break;
                         }
                     }
-                    fseek(read_fd, cur_pos, SEEK_SET);
+                    if (opt_size < 0) {
+                        /* READING ERROR */
+                        goto error_end;
+                    }
+                    lseek(read_fd, cur_pos, SEEK_SET);
                 }
                 line_start = cur_pos - act_size + i + 1;
-                if (buf[i] == '\n' && fwrite("\n", 1, 1, write_fd) != 1) {
+                if (buf[i] == '\n' && write(write_fd, "\n", 1) < 0) {
                     /* WRITING FILE ERROR */
                     goto error_end;
                 }
             }
         }
     }
-    if(trun(fileno(write_fd), ftell(write_fd)) < 0) {
+    if (act_size < 0) {
+        /* READING FILE ERROR */
+        goto error_end;
+    }
+    off_t file_size = lseek(write_fd, 0, SEEK_CUR);
+    if(truncate(file_name, file_size) < 0) {
         /* TRUNCATE FILE ERROR */
         goto error_end;
     }
-    fclose(read_fd);
-    fclose(write_fd);
+    close(read_fd);
+    close(write_fd);
     return 0;
 error_end:
-    fclose(read_fd);
-    fclose(write_fd);
+    close(read_fd);
+    close(write_fd);
     return -1;
 }
