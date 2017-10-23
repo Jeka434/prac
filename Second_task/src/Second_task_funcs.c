@@ -11,10 +11,16 @@ enum {
 int int_to_str(char *str, int num)
 {
     int i = 0;
-    if(!num) {
+    if (!num) {
         str[0] = '0';
         str[1] = '\0';
         return 1;
+    }
+    int neg = 0;
+    if (num < 0) {
+        neg = 1;
+        num = -num;
+        str[0] = '-';
     }
     while (num) {
         str[i++] = '0' + num % 10;
@@ -22,12 +28,12 @@ int int_to_str(char *str, int num)
     }
     char tmp;
     for (int j = 0; j < i / 2; j++) {
-        tmp = str[j];
-        str[j] = str[i - j - 1];
-        str[i - j - 1] = tmp;
+        tmp = str[j + neg];
+        str[j + neg] = str[i - j - 1 + neg];
+        str[i - j - 1 + neg] = tmp;
     }
-    str[i] = '\0';
-    return i;
+    str[i + neg] = '\0';
+    return i + neg;
 }
 
 /* PROCESSING ONE FILE */
@@ -59,9 +65,6 @@ int process_file(char const *file_name)
         }
         lseek(read_fd, cur_pos, SEEK_SET);
         for (i = 0; i < act_size; i++) {
-            if (buf[i] == '-') {
-                negative_flag = -1;
-            }
             if (buf[i] >= '0' && buf[i] <= '9') {
                 number_flag = 1;
                 number = number * 10 + buf[i] - '0';
@@ -69,14 +72,19 @@ int process_file(char const *file_name)
                     /* TOO BIG NUMBER */
                 }
             }
-            if (buf[i] != '-' && (!(buf[i] >= '0' && buf[i] <= '9') || (file_end && i == act_size - 1))) {
+            if (!(buf[i] >= '0' && buf[i] <= '9') || (file_end && i == act_size - 1)) {
                 if (number_flag) {
                     number_flag = 0;
                     summ_exists = 1;
                     summ += number * negative_flag;
                     number = 0;
                 }
-                negative_flag = 1;
+                if (buf[i] != '-') {
+                    negative_flag = 1;
+                }
+            }
+            if (buf[i] == '-') {
+                negative_flag = -1;
             }
             if (buf[i] == '\n' || (file_end && i == act_size - 1)) {
                 if (summ_exists) {
@@ -90,7 +98,7 @@ int process_file(char const *file_name)
                 } else {
                     lseek(read_fd, line_start, SEEK_SET);
                     opt_size_sum = 0;
-                    file_str_len = cur_pos - act_size + i - line_start;
+                    file_str_len = cur_pos - act_size + i - line_start + (buf[i] != '\n');
                     while ((opt_size = read(read_fd, opt_buf, BUF_SIZE)) > 0) {
                         opt_size_sum += opt_size;
                         if (opt_size_sum < file_str_len) {
