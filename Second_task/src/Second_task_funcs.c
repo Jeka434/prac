@@ -18,7 +18,6 @@ enum {
 /* GET STRING FROM INTEGER */
 int int_to_str(char *str, int num)
 {
-    int i = 0;
     if (!num) {
         str[0] = '0';
         str[1] = '\0';
@@ -30,15 +29,16 @@ int int_to_str(char *str, int num)
         num = -num;
         str[0] = '-';
     }
+    int i = 0;
     while (num) {
-        str[i++] = '0' + num % 10;
+        str[i++ + neg] = '0' + num % 10;
         num /= 10;
     }
     char tmp;
-    for (int j = 0; j < i / 2; j++) {
-        tmp = str[j + neg];
-        str[j + neg] = str[i - j - 1 + neg];
-        str[i - j - 1 + neg] = tmp;
+    for (int j = neg; j < neg + i / 2; j++) {
+        tmp = str[j];
+        str[j] = str[i - j - 1];
+        str[i - j - 1] = tmp;
     }
     str[i + neg] = '\0';
     return i + neg;
@@ -81,9 +81,6 @@ int process_file(char const *file_name)
             if (buf[i] >= '0' && buf[i] <= '9') {
                 number_flag = 1;
                 number = number * 10 + buf[i] - '0';
-                if (number < 0) {
-                    /* TOO BIG NUMBER */
-                }
             }
             if (!(buf[i] >= '0' && buf[i] <= '9') || (file_end && i == act_size - 1)) {
                 if (number_flag) {
