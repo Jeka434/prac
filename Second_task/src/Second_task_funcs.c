@@ -1,9 +1,8 @@
-#include <fcntl.h>
-#include <unistd.h>
 #include <stdio.h>
 #include "Second_task_funcs.h"
 
 #if defined(__APPLE__) || defined(unix) || defined(__unix) || defined(__unix__)
+#include <unistd.h>
 #define trun(file, size) ftruncate(file, size)
 #elif (defined _WIN32) || (defined _WIN64)
 #define trun(file, size) _ftruncate(file, size)
@@ -132,6 +131,10 @@ int process_file(char const *file_name)
                             break;
                         }
                     }
+                    if (ferror(read_fd)) {
+                        /* READING FILE ERROR */
+                        goto error_end;
+                    }
                     fseek(read_fd, cur_pos, SEEK_SET);
                 }
                 line_start = cur_pos - act_size + i + 1;
@@ -142,6 +145,11 @@ int process_file(char const *file_name)
             }
         }
     }
+    if (ferror(read_fd)) {
+        /* READING FILE ERROR */
+        goto error_end;
+    }
+    fflush(write_fd);
     if(trun(fileno(write_fd), ftell(write_fd)) < 0) {
         /* TRUNCATE FILE ERROR */
         goto error_end;
