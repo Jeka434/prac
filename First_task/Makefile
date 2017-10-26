@@ -8,7 +8,7 @@ INCDIR = ./includes/
 SRCDIR = ./src/
 CC = gcc
 OBJECTS = $(SOURCES:.c=.o)
-CFLAGS = -O2 -g -Wall -Werror --coverage -pedantic-errors -Wno-pointer-sign -Wextra -std=gnu11 -ftrapv -I $(INCDIR) -fsanitize=undefined
+CFLAGS = -O2 -g -Wall -Werror --coverage -pedantic-errors -Wno-pointer-sign -Wextra -std=gnu11 -I $(INCDIR)
 TRAPFLAG = 0
 
 all: $(TARGET)
