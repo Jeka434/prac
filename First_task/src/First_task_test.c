@@ -75,10 +75,11 @@ int main(int argc, char const *argv[])
         printf("Start creating list by testfile '%s'\n", argv[i]);
         switch (create_list_by_test(&my_list, argv[i])) {
             case FILE_ERROR:
-                fprintf(stderr, "Problem with file '%s' : %s", argv[i], strerror(errno));
+                perror(argv[i]);
                 break;
             case MEMORY_ERROR:
-                perror(NULL);
+                delete_list(my_list);
+                perror(argv[i]);
                 break;
         }
         add_to_list(my_list, NULL);
