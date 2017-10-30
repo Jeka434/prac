@@ -8,8 +8,8 @@ Usage:
         make            --  compile with all flags
         make test       --  compile and run on tests
         make valgrind   --  compile and run with valgrind
-        make lcov       --  get coverage
-        make dlcov      --  get coverage, when you don't have lcov
+        make lcov-test  --  get coverage
+        make lcov-rm    --  remove lcov
         make stderr     --  to see stderr of program
         make stdout     --  to see stdout of program
         make clean      --  clean directory from all created files
