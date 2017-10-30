@@ -44,11 +44,11 @@ add_to_list(List *head_of_list, const char *added_line)
         return head_of_list;
     }
     List *list_pointer = head_of_list;
-    while (list_pointer->next != head_of_list && strcmp(list_pointer->str, added_line) < 0) {
+    while (list_pointer->next != head_of_list && strcmp(list_pointer->str, added_line) <= 0) {
         list_pointer = list_pointer->next;
     }
     List *new_elem = NULL;
-    if (strcmp(head_of_list->str, added_line) > 0 || strcmp(list_pointer->str, added_line) < 0) {
+    if (strcmp(head_of_list->str, added_line) >= 0 || strcmp(list_pointer->str, added_line) <= 0) {
         list_pointer = head_of_list;
     }
     new_elem = init_elem(added_line, list_pointer->prev, list_pointer);
@@ -60,7 +60,7 @@ add_to_list(List *head_of_list, const char *added_line)
 //LCOV_EXCL_STOP
     list_pointer->prev->next = new_elem;
     list_pointer->prev = new_elem;
-    if (strcmp(head_of_list->str, added_line) > 0) {
+    if (strcmp(head_of_list->str, added_line) >= 0) {
         head_of_list = new_elem;
     }
     return head_of_list;

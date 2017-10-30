@@ -2,7 +2,7 @@
 TARGET = first_program
 SOURCES = First_task.c First_task_test.c
 LIB = First_task.h
-TESTFILES = file1 file2 file3 file4
+TESTFILES = file1 file2 file3 file4 file5
 TESTDIR = ./tests/
 INCDIR = ./includes/
 SRCDIR = ./src/
