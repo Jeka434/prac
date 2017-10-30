@@ -33,7 +33,7 @@ test: $(TARGET) output
 	./$(TARGET) 1>output/stdout 2>output/stderr
 	chmod -r tests/file8
 	chmod -w tests/file9
-	./$(TARGET) $(patsubst %, $(TESTDIR)%, $(TESTFILES)) 1>output/stdout 2>output/stderr
+	./$(TARGET) $(patsubst %, $(TESTDIR)%, $(TESTFILES)) 1>>output/stdout 2>>output/stderr
 lcov:
 	git clone https://github.com/linux-test-project/lcov.git
 lcov-test: lcov

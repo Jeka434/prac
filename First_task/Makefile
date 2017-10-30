@@ -31,7 +31,7 @@ output:
 	mkdir output
 test: $(TARGET) output
 	./$(TARGET) 1>output/stdout 2>output/stderr
-	./$(TARGET) $(patsubst %, $(TESTDIR)%, $(TESTFILES)) 1>output/stdout 2>output/stderr
+	./$(TARGET) $(patsubst %, $(TESTDIR)%, $(TESTFILES)) 1>>output/stdout 2>>output/stderr
 lcov:
 	git clone https://github.com/linux-test-project/lcov.git
 lcov-test: lcov
