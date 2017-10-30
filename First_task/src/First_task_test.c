@@ -10,19 +10,21 @@ enum {
     MEMORY_ERROR = -2
 };
 
-int delete_list(List *head_of_list)
+int delete_list(List **head_of_list)
 {
-    if (!head_of_list) {
+    if (!head_of_list || !*head_of_list) {
         return 0;
     }
     List *tmp;
-    head_of_list->prev->next = NULL;
-    while (head_of_list) {
-        tmp = head_of_list;
-        head_of_list = head_of_list->next;
+    List *head = *head_of_list;
+    head->prev->next = NULL;
+    while (*head) {
+        tmp = *head;
+        *head = head->next;
         free(tmp->str);
         free(tmp);
     }
+    *head_of_list = NULL;
     return 0;
 }
 
@@ -68,26 +70,25 @@ int create_list_by_test(List **head_of_list, const char *filename)
 
 int main(int argc, char const *argv[])
 {
-    printf("START\n");
+    printf("---------- START ----------\n");
     List *my_list = NULL;
-    for (int i = 1; i < argc; ++i)
-    {
-        printf("Start creating list by testfile '%s'\n", argv[i]);
+    for (int i = 1; i < argc; ++i) {
+        printf("##### Start creating list by testfile '%s' #####\n", argv[i]);
         switch (create_list_by_test(&my_list, argv[i])) {
             case FILE_ERROR:
                 perror(argv[i]);
                 break;
             case MEMORY_ERROR:
-                delete_list(my_list);
+                delete_list(&my_list);
                 perror(argv[i]);
                 break;
         }
         add_to_list(my_list, NULL);
-        delete_list(my_list);
+        delete_list(&my_list);
         my_list = NULL;
-        printf("Stop creating list by testfile '%s'\n", argv[i]);
+        printf("##### Stop creating list by testfile '%s' #####\n", argv[i]);
     }
-    printf("END\n");
+    printf("---------- END ----------\n");
     return 0;
 }
 //LCOV_EXCL_STOP
