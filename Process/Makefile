@@ -3,13 +3,14 @@
 # make test - сгенерировать тесты и запустить тестировщик на всех тестах
 # make lcov-test - make test под lcov
 # make valgrind - make test под valgrind
-# 
-# 
-# 
-TARGET = tester
+# make clean - очистить рабочую область
+# make reset - вернуться в начало
+# make generate - 
+TARGET = bin/tester
 
 TEST_EXEC_D = ./tests/exec/
 TEST_TXT_D = ./tests/txt/
+TEST_FILES_D = ./test_files/
 SRCDIR = ./src/
 INCDIR = ./headers/
 OBJDIR = ./obj/
@@ -20,29 +21,34 @@ CFLAGS = -O2 -Wall -Werror -pedantic-errors -Wno-pointer-sign -Wextra -std=gnu11
 SOURCES = $(shell ls $(SRCDIR))
 OBJECTS = $(SOURCES:.c=.o)
 
-CRYPT = ./generator/crypt
-CRYPT_C = ./generator/src/crypt.c
+#CRYPT = ./bin/generator/crypt
+#CRYPT_C = ./bin/generator/src/crypt.c
 
 
-.PHONY: all lcov-test test valgrind clean crypt generate reset
+.PHONY: all lcov-test test valgrind clean reset #generate crypt
+
 all: $(TARGET)
 $(TARGET): $(OBJECTS:%=$(OBJDIR)%)
-	$(CC) -o $@ $(CFLAGS) $(OBJECTS)
+	$(CC) -o $@ $(CFLAGS) $(OBJECTS:%=$(OBJDIR)%)
 
 $(OBJDIR)%.o: $(SRCDIR)%.c
 	$(CC) -o $@ -c $(CFLAGS) -I $(INCDIR) $<
 
-test: $(TARGET) generate
-	./($TARGET) $(TEST_EXEC_D)*
+test: $(TARGET) output
+	for name in $(TEST_EXEC_D)*.out; do \
+	./$(TARGET) $$name; \
+	done
+#	for testfile in $(TEST_FILES_D)*; do \
+#	done; 
 generate:
-	$(CRYPT) $(TEST_TXT_D)*
-	$(CC) $(CFLAGS) -o $(TEST_TXT_D)*.out $(TEST_TXT_D)*.c
-	rm -f $(TEST_TXT_D)*.c
+	for name in `ls $(TEST_TXT_D)*.c | awk -F '/' '{print $$NF;}'`; do \
+	$(CC) $(CFLAGS) -o $(TEST_EXEC_D)$$name.out $(TEST_TXT_D)$$name; \
+	done
 output:
 	mkdir output
 lcov:
 	git clone https://github.com/linux-test-project/lcov.git
-lcov-test: lcov
+lcov-test: lcov reset
 	make test CFLAGS="$(CFLAGS) --coverage"
 	lcov/bin/lcov --capture --directory ./ --output-file tests.info --rc lcov_branch_coverage=1
 	lcov/bin/genhtml tests.info --branch-coverage -o html
@@ -50,13 +56,13 @@ lcov-test: lcov
 	open html/index.html
 valgrind: output
 	make CFLAGS="$(CFLAGS) -g"
-	valgrind --leak-check=full --leak-resolution=med -v ./$(TARGET) 
+	for name in $(TEST_EXEC_D)*.out; do \
+	valgrind --leak-check=full --leak-resolution=med -v ./$(TARGET) $$name; \
+	done
 	tail -n 15 output/valg_out
 	echo "More info in output/valg_out"
 	make clean
-crypt: generate
-	$(CC) -o $(CRYPT) $(CRYPT_C)
 clean:
-	rm -rf *.gc?? tests.info *.dSYM
+	rm -rf $(OBJDIR)*.gc?? tests.info *.dSYM
 reset: clean
-	rm -rf $(OBJDIR)* html $(TARGET) output 
+	rm -rf $(OBJDIR)* html $(TARGET) output

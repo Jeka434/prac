@@ -2,10 +2,16 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include "../headers/tester_funcs.h"
+#include "tester_funcs.h"
 
+enum {
+    BUFSIZE = 513,
+    NUMSIZE = 20
+};
 
-#define check(cmd) if ((cmd) < 0) return -1;
+#define check(cmd) switch (cmd) { \
+    case -1: return -1; \
+}
 
 pid_t testpid;
 int pp1[2], pp0[2];
@@ -16,13 +22,6 @@ void close_all(void)
     close(pp0[1]);
     close(pp1[0]);
     close(pp1[1]);
-}
-
-void handler()
-{
-    close_all();
-    wait(NULL);
-    exit(1);
 }
 
 char buf[BUFSIZE];
@@ -36,6 +35,25 @@ int print_from_pipe(int fd)
     check(count);
     check(write(1, buf, count));
     return 0;
+}
+
+int get_answer(char *buf, int size)
+{
+    while (1) {
+        if (!fgets(buf, size, stdin)) {
+            return -1;
+        }
+        if (!strchr(buf, '\n')) {
+            do {
+                if (!fgets(buf, size, stdin)) {
+                    return -1;
+                }
+            } while (!strchr(buf, '\n'));
+            fprintf(stderr, "Слишком длинный ответ! Введите заново\n");
+        } else {
+            return 0;
+        }
+    }
 }
 
 int writeint(int fd, int qnum)
@@ -68,9 +86,7 @@ int send1(int qnum, int stats[])
 {
     check(write(pp1[1], "3", 1));
     check(writeint(pp1[1], qnum));
-    if (!fgets(buf, BUFSIZE, stdin)) {
-        return -1;
-    }
+    check(get_answer(buf, BUFSIZE));
     check(write(pp1[1], buf, strlen(buf)));
     char res;
     check(read(pp0[0], &res, sizeof(res)));
@@ -83,13 +99,13 @@ int send1(int qnum, int stats[])
     }
 }
 
-void print_stats(int stats[], int size)
+void print_stats(int stats[], int size, int max)
 {
     int i, summ = 0;
     for (i = 0; i < size; i++) {
         summ += stats[i];
     }
-    printf("\nCorrect answers are %d from %d\n\nDetails:\n", summ, size);
+    printf("\nCorrect answers are %d from %d\n\nDetails:\n", summ, max);
     for (i = 0; i < size; i++) {
         printf("Question %d == %s\n", i + 1, stats[i] ? "CORRECT" : "INCORRECT");
     }

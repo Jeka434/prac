@@ -7,17 +7,17 @@ pid_t testpid;
 int pp1[2], pp0[2];
 
 enum {
-    BUFSIZE = 513,
-    NUMSIZE = 20
+    QUESTMAX = 255
 };
 
+int stats[QUESTMAX];
 int qnum;
 
 void close_all(void);
-void handler(int signum);
+int getqnum1(void);
 int gettopic1(void);
 int getq1(int qnum);
 int send1(int qnum, int stats[]);
-void print_stats(int stats[], int size);
+void print_stats(int stats[], int size, int max);
 
 #endif

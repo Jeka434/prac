@@ -4,16 +4,42 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <signal.h>
-#include "../headers/tester_funcs.h"
+#include "tester_funcs.h"
 
-#define main_check(cmd) if ((cmd) < 0) kill(getpid(), SIGINT);
+int statflag = 0, qi = 0;
+
+#define main_check(cmd) \
+switch (cmd) { \
+    case -1: handler(); \
+}
+
+void setsignals(void);
+
+void handler()
+{
+    setsignals();
+    if (statflag) {
+        print_stats(stats, qi - 1, qnum);
+    }
+    close_all();
+    wait(NULL);
+    exit(0);
+}
+
+void setsignals(void)
+{
+    signal(SIGINT, handler);
+    signal(SIGPIPE, handler);
+}
 
 int main(int argc, char const *argv[])
 {
+//LCOV_EXCL_START
     if (argc != 2) {
         fprintf(stderr, "Неправильное количество аргументов\n");
-        return 1;
+        return 0;
     }
+//LCOV_EXCL_STOP
     pipe(pp0);
     pipe(pp1);
     if (!(testpid = fork())) {
@@ -26,20 +52,25 @@ int main(int argc, char const *argv[])
     }
     close(pp0[1]);
     close(pp1[0]);
-    if (testpid == -1) {
-        return 1;
-    }
-    signal(SIGINT, handler);
-    signal(SIGCHLD, handler);
-    main_check(read(pp0[0], &qnum, sizeof(qnum)));
-    int stats[qnum];
-    memset(stats, 0, qnum);
+//LCOV_EXCL_START
+    main_check(testpid);
+//LCOV_EXCL_STOP
+    setsignals();
+//LCOV_EXCL_START
+    main_check(getqnum1());
+//LCOV_EXCL_STOP
+    memset(stats, 0, qi);
+    statflag = 1;
 
+//LCOV_EXCL_START
     main_check(gettopic1());
-    int i, res;
-    for (i = 1; i < qnum + 1; i++) {
-        main_check(getq1(i));
-        res = send1(i, stats);
+//LCOV_EXCL_STOP
+    int res;
+    for (qi = 1; qi < qnum + 1; qi++) {
+//LCOV_EXCL_START
+        main_check(getq1(qi));
+//LCOV_EXCL_STOP
+        res = send1(qi, stats);
         main_check(res);
         if (res) {
             printf("CORRECT\n");
@@ -47,7 +78,7 @@ int main(int argc, char const *argv[])
             printf("INCORRECT\n");
         }
     }
-    print_stats(stats, qnum);
+    print_stats(stats, qnum, qnum);
     close_all();
     wait(NULL);
     return 0;
