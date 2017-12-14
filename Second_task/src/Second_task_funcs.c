@@ -1,5 +1,7 @@
 #include <stdio.h>
-#include "Second_task_funcs.h"
+#include <stdlib.h>
+#include <ctype.h>
+#include "../headers/Second_task_funcs.h"
 
 #if defined(__APPLE__) || defined(unix) || defined(__unix) || defined(__unix__)
 #include <unistd.h>
@@ -12,8 +14,13 @@
 
 enum {
     BUF_SIZE = 512,
-    MAX_NUMBER_SIZE = 32, /* SIZE OF BUFFER FOR STRING-NUMBERS */
+    MAX_NUMBER_SIZE = 32 /* SIZE OF BUFFER FOR STRING-NUMBERS */
 };
+
+#define CHECK_ERR(file) \
+if (ferror(file)) {\
+    goto error_end;\
+}
 
 /* GET STRING FROM INTEGER */
 int int_to_str(char *str, int num)
@@ -44,6 +51,17 @@ int int_to_str(char *str, int num)
     return i + neg;
 }
 
+int check_for_end(FILE *file, long cur_pos)
+{
+    fseek(file, 0, SEEK_END);
+    if (cur_pos == ftell(file)) {
+        fseek(file, cur_pos, SEEK_SET);
+        return 1;
+    }
+    fseek(file, cur_pos, SEEK_SET);
+    return 0;
+}
+
 /* PROCESSING ONE FILE */
 int process_file(char const *file_name)
 {
@@ -67,22 +85,14 @@ int process_file(char const *file_name)
     int number_flag = 0, summ_exists = 0, file_end = 0, negative_flag = 1;
     long line_start = 0, cur_pos = 0, file_str_len, opt_size_sum;
     while ((act_size = fread(buf, sizeof(*buf), sizeof(buf) / sizeof(*buf), read_fd))) {
-        if (ferror(read_fd)) {
-            /* READING FILE ERROR */
-            goto error_end;
-        }
-        cur_pos = ftell(read_fd);
-        fseek(read_fd, 0, SEEK_END);
-        if (cur_pos == ftell(read_fd)) {
-            file_end = 1;
-        }
-        fseek(read_fd, cur_pos, SEEK_SET);
+        CHECK_ERR(read_fd);
+        file_end = check_for_end(read_fd, cur_pos = ftell(read_fd));
         for (i = 0; i < act_size; i++) {
-            if (buf[i] >= '0' && buf[i] <= '9') {
+            if (isdigit(buf[i])) {
                 number_flag = 1;
                 number = number * 10 + buf[i] - '0';
             }
-            if (!(buf[i] >= '0' && buf[i] <= '9') || (file_end && i == act_size - 1)) {
+            if (!isdigit(buf[i]) || (file_end && i == act_size - 1)) {
                 if (number_flag) {
                     number_flag = 0;
                     summ_exists = 1;
@@ -112,26 +122,19 @@ int process_file(char const *file_name)
                     file_str_len = cur_pos - act_size + i - line_start + (buf[i] != '\n');
                     while ((opt_size = fread(opt_buf,
                         sizeof(*opt_buf), sizeof(opt_buf) / sizeof(*opt_buf), read_fd))) {
-                        if (ferror(read_fd)) {
-                            /* READING ERROR */
-                            goto error_end;
-                        }
+                        CHECK_ERR(read_fd);
                         opt_size_sum += opt_size;
                         if (opt_size_sum < file_str_len) {
-                            if (fwrite(opt_buf, sizeof(*opt_buf), opt_size, write_fd) != opt_size) {
-                                /* WRITING FILE ERROR */
-                                goto error_end;
-                            }
+                            fwrite(opt_buf, sizeof(*opt_buf), opt_size, write_fd);
+                            CHECK_ERR(write_fd);
                         } else {
                             fwrite(opt_buf, sizeof(*opt_buf),
                                 file_str_len - opt_size_sum + opt_size, write_fd);
+                            CHECK_ERR(write_fd);
                             break;
                         }
                     }
-                    if (ferror(read_fd)) {
-                        /* READING FILE ERROR */
-                        goto error_end;
-                    }
+                    CHECK_ERR(read_fd);
                     fseek(read_fd, cur_pos, SEEK_SET);
                 }
                 line_start = cur_pos - act_size + i + 1;
@@ -142,10 +145,7 @@ int process_file(char const *file_name)
             }
         }
     }
-    if (ferror(read_fd)) {
-        /* READING FILE ERROR */
-        goto error_end;
-    }
+    CHECK_ERR(read_fd);
     fflush(write_fd);
     if(trun(fileno(write_fd), ftell(write_fd)) < 0) {
         /* TRUNCATE FILE ERROR */

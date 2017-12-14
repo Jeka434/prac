@@ -4,11 +4,11 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <signal.h>
-#include "tester_funcs.h"
+#include "../headers/tester_funcs.h"
 
 int statflag = 0, qi = 0;
 
-#define main_check(cmd) \
+#define MAIN_CHECK(cmd) \
 switch (cmd) { \
     case -1: handler(); \
 }
@@ -23,7 +23,7 @@ void handler()
     }
     close_all();
     wait(NULL);
-    exit(0);
+    _exit(0);
 }
 
 void setsignals(void)
@@ -52,26 +52,18 @@ int main(int argc, char const *argv[])
     }
     close(pp0[1]);
     close(pp1[0]);
-//LCOV_EXCL_START
-    main_check(testpid);
-//LCOV_EXCL_STOP
+    MAIN_CHECK(testpid);
     setsignals();
-//LCOV_EXCL_START
-    main_check(getqnum1());
-//LCOV_EXCL_STOP
+    MAIN_CHECK(getqnum1());
     memset(stats, 0, qi);
     statflag = 1;
 
-//LCOV_EXCL_START
-    main_check(gettopic1());
-//LCOV_EXCL_STOP
+    MAIN_CHECK(gettopic1());
     int res;
     for (qi = 1; qi < qnum + 1; qi++) {
-//LCOV_EXCL_START
-        main_check(getq1(qi));
-//LCOV_EXCL_STOP
+        MAIN_CHECK(getq1(qi));
         res = send1(qi, stats);
-        main_check(res);
+        MAIN_CHECK(res);
         if (res) {
             printf("CORRECT\n");
         } else {

@@ -5,7 +5,7 @@
 # make valgrind - make test под valgrind
 # make clean - очистить рабочую область
 # make reset - вернуться в начало
-# make generate - 
+# make generate - скомпилировать тесты
 TARGET = bin/tester
 
 TEST_EXEC_D = ./tests/exec/
@@ -16,16 +16,14 @@ INCDIR = ./headers/
 OBJDIR = ./obj/
 
 CC = gcc
-CFLAGS = -O2 -Wall -Werror -pedantic-errors -Wno-pointer-sign -Wextra -std=gnu11
+CFLAGS = -O2 -Wall -Werror -pedantic-errors -Wno-pointer-sign -Wextra -std=gnu11 -fsanitize=undefined -ftrapv
+
+LFLAGS = -Wall -Werror -pedantic-errors -Wno-pointer-sign -Wextra -std=gnu11 --coverage
 
 SOURCES = $(shell ls $(SRCDIR))
 OBJECTS = $(SOURCES:.c=.o)
 
-#CRYPT = ./bin/generator/crypt
-#CRYPT_C = ./bin/generator/src/crypt.c
-
-
-.PHONY: all lcov-test test valgrind clean reset #generate crypt
+.PHONY: all lcov-test test valgrind clean reset
 
 all: $(TARGET)
 $(TARGET): $(OBJECTS:%=$(OBJDIR)%)
@@ -38,9 +36,8 @@ test: $(TARGET) output
 	for name in $(TEST_EXEC_D)*.out; do \
 	./$(TARGET) $$name; \
 	done
-#	for testfile in $(TEST_FILES_D)*; do \
-#	done; 
 generate:
+	rm -f $(TEST_EXEC_D)*
 	for name in `ls $(TEST_TXT_D)*.c | awk -F '/' '{print $$NF;}'`; do \
 	$(CC) $(CFLAGS) -o $(TEST_EXEC_D)$$name.out $(TEST_TXT_D)$$name; \
 	done
@@ -49,20 +46,19 @@ output:
 lcov:
 	git clone https://github.com/linux-test-project/lcov.git
 lcov-test: lcov reset
-	make test CFLAGS="$(CFLAGS) --coverage"
+	make test CFLAGS="$(LFLAGS)"
 	lcov/bin/lcov --capture --directory ./ --output-file tests.info --rc lcov_branch_coverage=1
 	lcov/bin/genhtml tests.info --branch-coverage -o html
 	make clean
-	open html/index.html
-valgrind: output
+	echo "open html/index.html"
+valgrind: output reset
 	make CFLAGS="$(CFLAGS) -g"
 	for name in $(TEST_EXEC_D)*.out; do \
-	valgrind --leak-check=full --leak-resolution=med -v ./$(TARGET) $$name; \
+	valgrind --leak-check=full --leak-resolution=med -v ./$(TARGET) $$name 2>>output/valg_out; \
 	done
-	tail -n 15 output/valg_out
 	echo "More info in output/valg_out"
 	make clean
 clean:
 	rm -rf $(OBJDIR)*.gc?? tests.info *.dSYM
 reset: clean
-	rm -rf $(OBJDIR)* html $(TARGET) output
+	rm -rf $(OBJDIR)* $(TARGET) output html

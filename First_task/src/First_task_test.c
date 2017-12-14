@@ -18,9 +18,9 @@ int delete_list(List **head_of_list)
     List *tmp;
     List *head = *head_of_list;
     head->prev->next = NULL;
-    while (*head) {
-        tmp = *head;
-        *head = head->next;
+    while (head) {
+        tmp = head;
+        head = head->next;
         free(tmp->str);
         free(tmp);
     }

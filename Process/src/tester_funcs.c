@@ -2,14 +2,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include "tester_funcs.h"
+#include "../headers/tester_funcs.h"
 
 enum {
     BUFSIZE = 513,
     NUMSIZE = 20
 };
 
-#define check(cmd) switch (cmd) { \
+#define CHECK(cmd) switch (cmd) { \
     case -1: return -1; \
 }
 
@@ -26,14 +26,28 @@ void close_all(void)
 
 char buf[BUFSIZE];
 
-int print_from_pipe(int fd)
+int readsome(int fd, void *num, size_t size)
 {
     int count;
-    while ((count = read(fd, buf, BUFSIZE)) == BUFSIZE && buf[BUFSIZE - 1] != '\n') {
-        check(write(1, buf, BUFSIZE));
+    size_t summ = 0;
+    while ((count = read(fd, (char*)num + summ, size - summ)) > 0) {
+        summ += count;
+        if (summ == size) {
+            return 0;
+        }
     }
-    check(count);
-    check(write(1, buf, count));
+    return -1;
+}
+
+int print_from_pipe(int fd)
+{
+    int count, summ = 0, num;
+    CHECK(readsome(fd, &num, sizeof(num)));
+    while ((summ += (count = read(fd, buf, BUFSIZE))) != num && count > 0) {
+        CHECK(write(1, buf, count));
+    }
+    CHECK(count);
+    CHECK(write(1, buf, count));
     return 0;
 }
 
@@ -65,31 +79,31 @@ int writeint(int fd, int qnum)
 
 int getqnum1(void)
 {
-    check(write(pp1[1], "0", 1));
-    return read(pp0[0], &qnum, sizeof qnum);
+    CHECK(write(pp1[1], "0", 1));
+    return readsome(pp0[0], &qnum, sizeof qnum);
 }
 
 int gettopic1(void)
 {
-    check(write(pp1[1], "1", 1));
+    CHECK(write(pp1[1], "1", 1));
     return print_from_pipe(pp0[0]);
 }
 
 int getq1(int qnum)
 {
-    check(write(pp1[1], "2", 1));
-    check(writeint(pp1[1], qnum));
+    CHECK(write(pp1[1], "2", 1));
+    CHECK(writeint(pp1[1], qnum));
     return print_from_pipe(pp0[0]);
 }
 
 int send1(int qnum, int stats[])
 {
-    check(write(pp1[1], "3", 1));
-    check(writeint(pp1[1], qnum));
-    check(get_answer(buf, BUFSIZE));
-    check(write(pp1[1], buf, strlen(buf)));
+    CHECK(write(pp1[1], "3", 1));
+    CHECK(writeint(pp1[1], qnum));
+    CHECK(get_answer(buf, BUFSIZE));
+    CHECK(write(pp1[1], buf, strlen(buf)));
     char res;
-    check(read(pp0[0], &res, sizeof(res)));
+    CHECK(readsome(pp0[0], &res, sizeof(res)));
     if (res - '0') {
         stats[qnum - 1] = 1;
         return 1;
@@ -105,7 +119,11 @@ void print_stats(int stats[], int size, int max)
     for (i = 0; i < size; i++) {
         summ += stats[i];
     }
-    printf("\nCorrect answers are %d from %d\n\nDetails:\n", summ, max);
+    printf("\nCorrect answers are %d from %d\n", summ, max);
+    if (!size) {
+        return;
+    }
+    printf("\nDetails:\n");
     for (i = 0; i < size; i++) {
         printf("Question %d == %s\n", i + 1, stats[i] ? "CORRECT" : "INCORRECT");
     }

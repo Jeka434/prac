@@ -9,19 +9,24 @@ enum {
 
 char const *topic = "Тест 1";
 
-const char *questions[][2] = {
-    {"Сколько будет 120+23?", "143"},
-    {"Напишите \"привет\".", "привет"},
-    {"Это третий вопрос? (да/нет)", "да"},
-    {"Кто сдаст экзамен по ОС?", "никто"},
-    {"экзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзаменэкзамен", "фыв"}
+struct Question {
+    char *q;
+    char *a;
+    int (*cmp)(const char *, const char *);
+};
+
+struct Question questions[] = {
+    {"Сколько будет 120+23?", "143", strcmp},
+    {"Напишите \"привет\".", "привет", strcmp},
+    {"Это третий вопрос? (да/нет)", "да", strcmp},
+    {"Кто сдаст экзамен по ОС?", "никто", strcmp}
 };
 
 char str[BUFSIZE];
 
-#define check_err(func) if ((func) < 0) goto err;
+#define CHECK_ERR(func) if ((func) < 0) goto err;
 
-#define check(cmd) switch (cmd) { \
+#define CHECK(cmd) switch (cmd) { \
     case -1: return -1; \
 }
 
@@ -34,21 +39,26 @@ int getqnum(void)
 
 int gettopic(void)
 {
+    int len = strlen(topic) + strlen("Topic is \n");
+    CHECK(write(1, &len, sizeof len));
     return printf("Topic is %s\n", topic);
 }
 
 int getq(void)
 {
-    int qnum;
-    if (scanf("%d%*c", &qnum) < 0) {
+    int qnum1;
+    CHECK(scanf("%d%*c", &qnum1));
+    if (qnum1 > qnum || qnum1 < 0) {
         return -1;
     }
-    return printf("%d. %s\n", qnum, questions[qnum - 1][0]);
+    int len = strlen(questions[qnum1 - 1].q) + 1;
+    CHECK(write(1, &len, sizeof len));
+    return printf("%s\n", questions[qnum1 - 1].q);
 }
 
 int check_answer(int qnum, const char *msg)
 {
-    if (!strcmp(msg, questions[qnum - 1][1])) {
+    if (!questions[qnum - 1].cmp(msg, questions[qnum - 1].a)) {
         return printf("1");
     } else {
         return printf("0");
@@ -57,18 +67,19 @@ int check_answer(int qnum, const char *msg)
 
 int send(void)
 {
-    int qnum;
-    if (scanf("%d%*c", &qnum) < 0) {
-        return 1;
+    int qnum1;
+    CHECK(scanf("%d%*c", &qnum1));
+    if (qnum1 > qnum || qnum1 < 0) {
+        return -1;
     }
     if (!fgets(str, BUFSIZE, stdin)) {
-        return 1;
+        return -1;
     }
 
     if (strchr(str, '\n')) {
         strchr(str, '\n')[0] = 0;
     }
-    return check_answer(qnum, str);
+    return check_answer(qnum1, str);
 }
 
 int (*cmds[])(void) = {
@@ -78,17 +89,16 @@ int (*cmds[])(void) = {
     send
 };
 
-int main(int argc, char const *argv[])
+int main(void)
 {
     setbuf(stdout, NULL);
     int cmd;
     while ((cmd = getchar()) != EOF) {
         if (cmd >= '0' && cmd <= '3') {
-            check_err(cmds[cmd - '0']());
+            CHECK_ERR(cmds[cmd - '0']());
         }
     }
     return 0;
 err:
-    perror(argv[argc - 1]);
     return 1;
 }
