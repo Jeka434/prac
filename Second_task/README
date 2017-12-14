@@ -12,4 +12,5 @@ Usage:
         make lcov-rm    --  remove lcov
         make stderr     --  to see stderr of program
         make stdout     --  to see stdout of program
-        make clean      --  clean directory from all created files
+        make clean      --  clean directory from some created files
+        make reset      --  clean directory from all created files

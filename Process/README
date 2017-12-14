@@ -1,0 +1,14 @@
+Process task
+
+Usage:
+
+        make <instruction>
+
+    Possible instructions:
+        make            --  скомпилировать
+        make test       --  сгенерировать тесты и запустить тестировщик на всех тестах
+        make valgrind   --  make test под valgrind
+        make lcov-test  --  make test под lcov
+        make generate   --  скомпилировать тесты
+        make clean      --  очистить рабочую область
+        make reset      --  вернуть начальное состояние
