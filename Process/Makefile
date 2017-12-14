@@ -6,14 +6,15 @@
 # make clean - очистить рабочую область
 # make reset - вернуться в начало
 # make generate - скомпилировать тесты
-TARGET = bin/tester
+NAME = tester
 
 TEST_EXEC_D = ./tests/exec/
 TEST_TXT_D = ./tests/txt/
-TEST_FILES_D = ./test_files/
 SRCDIR = ./src/
 INCDIR = ./headers/
 OBJDIR = ./obj/
+BINDIR = ./bin/
+TARGET = $(BINDIR)$(NAME)
 
 CC = gcc
 CFLAGS = -O2 -Wall -Werror -pedantic-errors -Wno-pointer-sign -Wextra -std=gnu11 -fsanitize=undefined -ftrapv
@@ -36,11 +37,13 @@ test: $(TARGET) output
 	for name in $(TEST_EXEC_D)*.out; do \
 	./$(TARGET) $$name; \
 	done
-generate:
+generate: $(TEST_EXEC_D)
 	rm -f $(TEST_EXEC_D)*
 	for name in `ls $(TEST_TXT_D)*.c | awk -F '/' '{print $$NF;}'`; do \
 	$(CC) $(CFLAGS) -o $(TEST_EXEC_D)$$name.out $(TEST_TXT_D)$$name; \
 	done
+$(TEST_EXEC_D):
+	mkdir $(TEST_EXEC_D)
 output:
 	mkdir output
 lcov:
@@ -59,6 +62,6 @@ valgrind: output reset
 	echo "More info in output/valg_out"
 	make clean
 clean:
-	rm -rf $(OBJDIR)*.gc?? tests.info *.dSYM
+	rm -rf $(OBJDIR)*.gc?? tests.info $(BINDIR)*.dSYM
 reset: clean
-	rm -rf $(OBJDIR)* $(TARGET) output html
+	rm -rf $(OBJDIR)* $(TARGET) output html $(BINDIR)*
