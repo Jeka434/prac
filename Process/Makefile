@@ -24,7 +24,7 @@ LFLAGS = -Wall -Werror -pedantic-errors -Wno-pointer-sign -Wextra -std=gnu11 --c
 SOURCES = $(shell ls $(SRCDIR))
 OBJECTS = $(SOURCES:.c=.o)
 
-.PHONY: all lcov-test test valgrind clean reset
+.PHONY: all lcov-test test valgrind clean reset getready
 
 all: $(TARGET)
 $(TARGET): $(OBJECTS:%=$(OBJDIR)%)
@@ -65,3 +65,5 @@ clean:
 	rm -rf $(OBJDIR)*.gc?? tests.info $(BINDIR)*.dSYM
 reset: clean
 	rm -rf $(OBJDIR)* $(TARGET) output html $(BINDIR)*
+getready: reset
+	rm -rf lcov $(TEST_EXEC_D)*
