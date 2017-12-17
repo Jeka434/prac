@@ -1,18 +1,20 @@
 # Makefile for the first task
-TARGET = bin/first_program
+NAME = first_program
+
 TESTDIR = ./tests/
 INCDIR = ./headers/
 SRCDIR = ./src/
 OBJDIR = ./obj/
+BINDIR = ./bin/
+TARGET = $(BINDIR)$(NAME)
 CC = gcc
 TESTFILES = $(shell ls $(TESTDIR)file*)
 SOURCES = $(shell ls $(SRCDIR))
 OBJECTS = $(SOURCES:.c=.o)
 CFLAGS = -O2 -Wall -Werror -pedantic-errors -Wno-pointer-sign -Wextra -std=gnu11 -I $(INCDIR) -fsanitize=undefined -ftrapv
 LFLAGS = -Wall -Werror -pedantic-errors -Wno-pointer-sign -Wextra -std=gnu11 -I $(INCDIR) --coverage
-TRAPFLAG = 0
 
-.PHONY: all lcov-test test valgrind clean reset
+.PHONY: all lcov-test test valgrind clean reset getready
 
 all: $(TARGET)
 $(TARGET): $(OBJECTS:%=$(OBJDIR)%)
@@ -40,14 +42,13 @@ valgrind: output reset
 	echo "More info in output/valg_out"
 	make clean
 stderr:
-	cat output/stderr
+	less output/stderr
 stdout:
-	cat output/stdout
+	less output/stdout
 clean:
 	rm -rf $(OBJDIR)*.gc?? tests.info *.dSYM 
 reset: clean
 	rm -rf html $(OBJDIR)* $(TARGET) output $(TESTFILES)
 	cp tests/copied/* tests/
-lcov-rm:
+getready: reset
 	rm -rf lcov
-
