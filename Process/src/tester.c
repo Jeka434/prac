@@ -10,7 +10,7 @@ int statflag = 0, qi = 0;
 
 #define MAIN_CHECK(cmd) \
 switch (cmd) { \
-    case -1: handler(); \
+    case -1: myexit(); \
 }
 
 void setsignals(void);
@@ -24,6 +24,16 @@ void handler()
     close_all();
     wait(NULL);
     _exit(0);
+}
+
+void myexit(void)
+{
+    if (statflag) {
+        print_stats(stats, qi - 1, qnum);
+    }
+    close_all();
+    wait(NULL);
+    exit(0);
 }
 
 void setsignals(void)
