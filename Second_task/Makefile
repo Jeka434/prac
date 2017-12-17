@@ -1,10 +1,13 @@
 # Makefile for the second task
-TARGET = bin/second_program
+NAME = second_program
+
 TESTDIR = ./tests/
 TESTCDIR = ./tests/copied/
 INCDIR = ./headers/
 SRCDIR = ./src/
 OBJDIR = ./obj/
+BINDIR = ./bin/
+TARGET = $(BINDIR)$(NAME)
 CC = gcc
 TESTFILES = $(shell ls $(TESTDIR)file*)
 SOURCES = $(shell ls $(SRCDIR))
@@ -12,7 +15,7 @@ OBJECTS = $(SOURCES:.c=.o)
 CFLAGS = -O2 -Wall -Werror -pedantic-errors -Wno-pointer-sign -Wextra -std=gnu11 -I $(INCDIR) -fsanitize=undefined -ftrapv
 LFLAGS = -Wall -Werror -pedantic-errors -Wno-pointer-sign -Wextra -std=gnu11 -I $(INCDIR) --coverage
 
-.PHONY: all lcov-test test valgrind clean reset
+.PHONY: all lcov-test test valgrind clean reset getready
 
 all: $(TARGET)
 $(TARGET): $(OBJECTS:%=$(OBJDIR)%)
@@ -28,6 +31,8 @@ test: $(TARGET) output
 	chmod -r tests/file8
 	chmod -w tests/file9
 	./$(TARGET) $(TESTFILES) file10 1>>output/stdout 2>>output/stderr
+	chmod +r tests/file8
+	chmod +w tests/file9
 lcov:
 	git clone https://github.com/linux-test-project/lcov.git
 lcov-test: lcov reset
@@ -37,20 +42,22 @@ lcov-test: lcov reset
 	make clean
 valgrind: output reset
 	make CFLAGS="$(CFLAGS) -g"
+	chmod -r tests/file8
+	chmod -w tests/file9
 	valgrind --leak-check=full --leak-resolution=med -v ./$(TARGET) $(TESTFILES) file10 1>output/valg_out 2>&1
+	chmod +r tests/file8
+	chmod +w tests/file9
 	tail -n 15 output/valg_out
 	echo "More info in output/valg_out"
 	make clean
 stderr:
-	cat output/stderr
+	less output/stderr
 stdout:
-	cat output/stdout
+	less output/stdout
 clean:
 	rm -rf $(OBJDIR)*.gc?? tests.info *.dSYM 
 reset: clean
-	chmod +r tests/file8 || true
-	chmod +w tests/file9 || true
 	rm -rf html $(OBJDIR)* $(TARGET) output $(TESTFILES)
 	cp $(TESTCDIR)* $(TESTDIR)
-lcov-rm:
+getready: reset
 	rm -rf lcov
