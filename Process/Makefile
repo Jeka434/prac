@@ -9,7 +9,7 @@
 NAME = tester
 
 TEST_EXEC_D = ./tests/exec/
-TEST_TXT_D = ./tests/txt/
+TEST_SRC_D = ./tests/src/
 SRCDIR = ./src/
 INCDIR = ./headers/
 OBJDIR = ./obj/
@@ -39,8 +39,8 @@ test: $(TARGET) output generate
 	done
 generate: $(TEST_EXEC_D)
 	rm -f $(TEST_EXEC_D)*
-	for name in `ls $(TEST_TXT_D)*.c | awk -F '/' '{print $$NF;}'`; do \
-	$(CC) $(CFLAGS) -o $(TEST_EXEC_D)$$name.out $(TEST_TXT_D)$$name; \
+	for name in `ls $(TEST_SRC_D)*.c | awk -F '/' '{print $$NF;}'`; do \
+	$(CC) $(CFLAGS) -o $(TEST_EXEC_D)$$name.out $(TEST_SRC_D)$$name; \
 	done
 $(TEST_EXEC_D):
 	mkdir $(TEST_EXEC_D)
