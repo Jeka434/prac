@@ -62,7 +62,7 @@ valgrind: output reset
 	echo "More info in output/valg_out"
 	make clean
 clean:
-	rm -rf $(OBJDIR)*.gc?? tests.info $(BINDIR)*.dSYM
+	rm -rf $(OBJDIR)*.gc?? *.gc?? tests.info $(BINDIR)*.dSYM
 reset: clean
 	rm -rf $(OBJDIR)* $(TARGET) output html $(BINDIR)*
 getready: reset
