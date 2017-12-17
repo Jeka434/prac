@@ -33,7 +33,7 @@ $(TARGET): $(OBJECTS:%=$(OBJDIR)%)
 $(OBJDIR)%.o: $(SRCDIR)%.c
 	$(CC) -o $@ -c $(CFLAGS) -I $(INCDIR) $<
 
-test: $(TARGET) output
+test: $(TARGET) output generate
 	for name in $(TEST_EXEC_D)*.out; do \
 	./$(TARGET) $$name; \
 	done
