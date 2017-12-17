@@ -4,7 +4,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <signal.h>
-#include "../headers/tester_funcs.h"
+#include "tester_funcs.h"
 
 int statflag = 0, qi = 0;
 
