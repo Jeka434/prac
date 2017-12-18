@@ -109,11 +109,8 @@ int process_file(char const *file_name)
             if (buf[i] == '\n' || (file_end && i == act_size - 1)) {
                 if (summ_exists) {
                     numlen = int_to_str(str_number, summ);
-                    if (fwrite(str_number, sizeof(*str_number), numlen * sizeof(*str_number),
-                        write_fd) != numlen * sizeof(*str_number)) {
-                        /* WRITING FILE ERROR */
-                        goto error_end;
-                    }
+                    fwrite(str_number, sizeof(*str_number), numlen * sizeof(*str_number), write_fd);
+                    CHECK_ERR(write_fd);
                     summ_exists = 0;
                     summ = 0;
                 } else {
@@ -138,9 +135,9 @@ int process_file(char const *file_name)
                     fseek(read_fd, cur_pos, SEEK_SET);
                 }
                 line_start = cur_pos - act_size + i + 1;
-                if (buf[i] == '\n' && fwrite("\n", 1, 1, write_fd) != 1) {
-                    /* WRITING FILE ERROR */
-                    goto error_end;
+                if (buf[i] == '\n') {
+                    fwrite("\n", 1, 1, write_fd);
+                    CHECK_ERR(write_fd);
                 }
             }
         }
