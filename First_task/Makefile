@@ -46,9 +46,9 @@ stderr:
 stdout:
 	less output/stdout
 clean:
-	rm -rf $(OBJDIR)*.gc?? tests.info *.dSYM 
+	rm -rf $(OBJDIR)*.gc?? tests.info $(BINDIR)*.dSYM 
 reset: clean
-	rm -rf html $(OBJDIR)* $(TARGET) output $(TESTFILES)
+	rm -rf html $(OBJDIR)* $(TARGET) output/* $(TESTFILES)
 	cp tests/copied/* tests/
 getready: reset
-	rm -rf lcov
+	rm -rf lcov output
