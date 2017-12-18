@@ -116,7 +116,7 @@ int process_file(char const *file_name)
                 } else {
                     fseek(read_fd, line_start, SEEK_SET);
                     opt_size_sum = 0;
-                    file_str_len = cur_pos - act_size + i - line_start + (buf[i] != '\n');
+                    file_str_len = cur_pos - act_size + i - line_start + (buf[i] != '\n' ? 1 : 0);
                     while ((opt_size = fread(opt_buf,
                         sizeof(*opt_buf), sizeof(opt_buf) / sizeof(*opt_buf), read_fd))) {
                         CHECK_ERR(read_fd);
